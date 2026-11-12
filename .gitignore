@@ -1,0 +1,10 @@
+data/raw/
+__pycache__/
+*.pyc
+.env
+node_modules/
+viewer/amap-config.js
+viewer/supabase-config.js
+GDPOP/
+HKPOP/
+MCPOP/

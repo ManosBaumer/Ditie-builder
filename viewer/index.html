@@ -1,0 +1,2242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ditie</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <section id="screen-home" class="screen is-active" aria-label="Home">
+    <div class="home-shell">
+      <div class="home-account" id="home-account">
+        <button type="button" class="ghost-btn" id="btn-account" data-screen="auth">Log in</button>
+      </div>
+      <h1 class="home-brand">Ditie</h1>
+      <p class="home-zh">地铁</p>
+      <nav class="home-menu" aria-label="Main">
+        <button type="button" class="primary" id="btn-play" data-screen="maps">
+          Play
+          <span class="hint">Choose a city map</span>
+        </button>
+        <button type="button" id="btn-resume" disabled>
+          Resume
+          <span class="hint" id="resume-hint">No saved game yet</span>
+        </button>
+        <button type="button" id="btn-saves" data-screen="saves">
+          Saved games
+          <span class="hint" id="saves-hint">0 saves</span>
+        </button>
+        <button type="button" id="btn-settings" data-screen="settings">Settings</button>
+        <button type="button" id="btn-about" data-screen="about">About</button>
+      </nav>
+    </div>
+  </section>
+
+  <section id="screen-auth" class="screen plain-screen" aria-label="Account">
+    <div class="plain-inner auth-inner">
+      <button type="button" class="ghost-btn" data-screen="home">← Home</button>
+      <h1 id="auth-title">Log in</h1>
+      <p class="lead" id="auth-lead">Sign in to keep saved games on your account.</p>
+      <p class="auth-status" id="auth-status" hidden></p>
+      <div class="auth-tabs" role="tablist">
+        <button type="button" class="is-active" id="auth-tab-login" role="tab" aria-selected="true">Log in</button>
+        <button type="button" id="auth-tab-signup" role="tab" aria-selected="false">Sign up</button>
+      </div>
+      <form id="auth-form" class="auth-form" autocomplete="on">
+        <label>
+          Email
+          <input type="email" id="auth-email" name="email" required autocomplete="username" />
+        </label>
+        <label>
+          Password
+          <input type="password" id="auth-password" name="password" required minlength="6" autocomplete="current-password" />
+        </label>
+        <button type="submit" class="auth-submit" id="auth-submit">Log in</button>
+      </form>
+      <button type="button" class="ghost-btn" id="auth-signout" hidden>Sign out</button>
+      <p class="auth-setup" id="auth-setup" hidden>
+        Supabase is not configured yet. Create a project at
+        <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer">supabase.com/dashboard</a>,
+        run <code>supabase-saves.sql</code>, then put your URL and anon key in <code>supabase-config.js</code>.
+      </p>
+    </div>
+  </section>
+
+  <section id="screen-saves" class="screen plain-screen" aria-label="Saved games">
+    <div class="plain-inner">
+      <button type="button" class="ghost-btn" data-screen="home">← Home</button>
+      <h1>Saved games</h1>
+      <p class="lead">Open a city you already started, or delete a slot.</p>
+      <div id="saves-list" class="saves-list"></div>
+      <p class="saves-empty" id="saves-empty">No saved games yet. Open a city from Maps to create one.</p>
+    </div>
+  </section>
+
+  <section id="screen-maps" class="screen" aria-label="Maps">
+    <div id="maps-map"></div>
+    <div class="maps-bar">
+      <button type="button" class="ghost-btn" id="maps-back" data-screen="home">Home</button>
+      <h1>Maps</h1>
+      <div class="maps-tabs" role="tablist">
+        <button type="button" role="tab" id="tab-all" class="is-active" aria-selected="true">All cities</button>
+        <button type="button" role="tab" id="tab-metro" aria-selected="false">Metro cities</button>
+      </div>
+    </div>
+    <aside class="maps-card" id="maps-card">
+      <div class="row">
+        <img id="maps-card-logo" alt="" hidden />
+        <div>
+          <h2 id="maps-card-title">City</h2>
+          <p id="maps-card-sub"></p>
+        </div>
+      </div>
+      <button type="button" class="go" id="maps-card-go">Open map</button>
+    </aside>
+    <p class="maps-hint" id="maps-hint">Click a city border to select it.</p>
+  </section>
+
+  <section id="screen-settings" class="screen plain-screen" aria-label="Settings">
+    <div class="plain-inner">
+      <button type="button" class="ghost-btn" data-screen="home">← Home</button>
+      <h1>Settings</h1>
+      <p class="lead">Defaults for new maps. More options come later.</p>
+      <section>
+        <h2>Layers</h2>
+        <label><input type="checkbox" id="setting-living" checked /> Show living by default</label>
+        <label><input type="checkbox" id="setting-jobs" checked /> Show jobs by default</label>
+        <label><input type="checkbox" id="setting-places" checked /> Show places by default</label>
+      </section>
+      <section>
+        <h2>Save data</h2>
+        <p>Clear every local saved game and the resume slot. Cloud saves stay until you delete them while signed in.</p>
+        <button type="button" class="ghost-btn" id="btn-clear-save">Clear local saves</button>
+      </section>
+      <section>
+        <h2>Account backend</h2>
+        <p>Auth runs on Supabase. Put your project URL and anon key in <code>supabase-config.js</code>, and run <code>supabase-saves.sql</code> once.</p>
+      </section>
+    </div>
+  </section>
+
+  <section id="screen-about" class="screen plain-screen" aria-label="About">
+    <div class="plain-inner">
+      <button type="button" class="ghost-btn" data-screen="home">← Home</button>
+      <h1>About</h1>
+      <p class="lead">Ditie is a metro-builder sandbox over real demand across Guangdong, Hong Kong, and Macau.</p>
+      <section>
+        <h2>Maps</h2>
+        <p>Each prefecture is its own map, clipped to its administrative border. The Metro tab highlights cities that already run a metro or urban rail system.</p>
+      </section>
+      <section>
+        <h2>Demand</h2>
+        <p>Living and job bubbles show where people live and work. Places mark non-commute draw: stations, campuses, hospitals, malls, parks, and attractions.</p>
+      </section>
+      <section>
+        <h2>Accounts</h2>
+        <p>Accounts and cloud saves use Supabase Auth and Postgres. Local saves still work when you are signed out.</p>
+      </section>
+    </div>
+  </section>
+
+  <section id="screen-play" class="screen" aria-label="Play">
+    <div id="amap"></div>
+    <div class="zoom">
+      <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+      <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+    </div>
+    <div id="tip" class="tip"></div>
+    <aside class="panel">
+      <div class="panel-actions">
+        <button type="button" id="play-to-maps">Maps</button>
+        <button type="button" id="play-to-home">Home</button>
+      </div>
+      <h1 id="play-title">City</h1>
+      <p class="sub" id="sub">Loading demand…</p>
+      <p class="count" id="count">–<span id="count-label">residents</span></p>
+      <p class="count jobs" id="jobs-count">–<span>jobs</span></p>
+      <p class="count places" id="places-count">–<span id="places-label">place visits per day</span></p>
+      <fieldset>
+        <legend>Living</legend>
+        <label><input type="checkbox" id="living-toggle" checked /> Show living</label>
+        <label><input type="radio" name="field" value="residents" checked /> Residents</label>
+        <label><input type="radio" name="field" value="labor" /> Labor force</label>
+        <label><input type="radio" name="field" value="youth" /> Youth</label>
+        <label><input type="radio" name="field" value="old" /> Age 65+</label>
+      </fieldset>
+      <fieldset>
+        <legend>Workplaces</legend>
+        <label><input type="checkbox" id="jobs-toggle" checked /> Show jobs</label>
+      </fieldset>
+      <fieldset>
+        <legend>Places</legend>
+        <label><input type="checkbox" id="places-toggle" checked /> Show places</label>
+        <label><input type="checkbox" id="local-toggle" checked /> Show smaller places as general draw</label>
+      </fieldset>
+      <fieldset>
+        <legend>Borders</legend>
+        <label><input type="checkbox" id="borders-toggle" checked /> Show city border</label>
+      </fieldset>
+    </aside>
+  </section>
+
+  <div class="boot-status" id="boot-status">Loading map data…</div>
+
+  <script src="amap-config.js"></script>
+  <script src="metro-systems.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="vendor/supabase.bundle.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    const FIELDS = {
+      residents: "residents",
+      labor: "labor force",
+      youth: "youth",
+      old: "people aged 65+",
+    };
+    const LIVING_COLOR = "#0c8ec4";
+    const JOB_COLOR = "#ff9a3c";
+    const PLACE_COLOR = "#8e3fbf";
+    const OUTSIDE = "#121418";
+    const TIERS = ["city", "district", "local", "unrated"];
+    const UNRATED = TIERS.indexOf("unrated");
+    const TIER_NAMES = { city: "City destination", district: "District destination", local: "Local place", unrated: "No published count" };
+    const DETAIL_ZOOM = 12;
+    const SAVE_KEY = "ditie.save.v1";
+    const SAVES_KEY = "ditie.saves.v1";
+    const SETTINGS_KEY = "ditie.settings.v1";
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    }
+
+    function formatPeople(n) {
+      return new Intl.NumberFormat("en").format(n);
+    }
+
+    function linearStep(z, z0, z1, v0, v1) {
+      return v0 + (v1 - v0) * (z - z0) / (z1 - z0);
+    }
+
+    function piece(z, stops, step) {
+      if (z <= stops[0][0]) return step(z, stops[0][0], stops[1][0], stops[0][1], stops[1][1]);
+      for (let i = 0; i < stops.length - 1; i++) {
+        if (z <= stops[i + 1][0]) return step(z, stops[i][0], stops[i + 1][0], stops[i][1], stops[i + 1][1]);
+      }
+      const last = stops.length - 1;
+      return step(z, stops[last - 1][0], stops[last][0], stops[last - 1][1], stops[last][1]);
+    }
+
+    const BASE_MPP_ZOOM = 9;
+    const BASE_MPP = 281;
+
+    function metersPerPixel(zoom) {
+      return BASE_MPP / Math.pow(2, zoom - BASE_MPP_ZOOM);
+    }
+
+    // Through full detail the circles cover a fixed ground size. Past that
+    // they grow slowly with zoom so they do not look tiny as streets open up,
+    // without racing back to full ground scale.
+    const DETAIL_GROW = 0.3;
+
+    function demandMpp(zoom) {
+      if (zoom <= DETAIL_ZOOM) return metersPerPixel(zoom);
+      return metersPerPixel(DETAIL_ZOOM) / Math.pow(2, DETAIL_GROW * (zoom - DETAIL_ZOOM));
+    }
+
+    const DEMAND_RADIUS_M = 110;
+    // Visits use the same screen-size curve as residents/jobs: a ground radius
+    // that holds its pixel size once full detail is open.
+    const PLACE_VISIT_REF = 1000;
+    const BLOB_WEIGHT_REF = 1 / 40;
+
+    function demandRadiusMeters(value) {
+      return DEMAND_RADIUS_M * Math.pow(Math.max(value, 1) / 50, 0.34);
+    }
+
+    function placeRadiusMeters(visits) {
+      return DEMAND_RADIUS_M * Math.pow(Math.max(visits, 1) / PLACE_VISIT_REF, 0.34);
+    }
+
+    function blobRadiusMeters(weight) {
+      return DEMAND_RADIUS_M * Math.pow(Math.max(weight, 1) / BLOB_WEIGHT_REF, 0.34);
+    }
+
+    function demandRadius(zoom, value) {
+      return Math.max(1, demandRadiusMeters(value) / demandMpp(zoom));
+    }
+
+    function blobRadius(zoom, places) {
+      return Math.max(1, blobRadiusMeters(places) / demandMpp(zoom));
+    }
+
+    function placeRadius(zoom, visits) {
+      return Math.max(1, placeRadiusMeters(visits) / demandMpp(zoom));
+    }
+
+    // The road map is Amap, which draws on the GCJ-02 grid. Demand points
+    // stay in WGS84 on disk and are shifted only for display.
+    function offsetLat(x, y) {
+      let value = -100 + 2 * x + 3 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+      value += (20 * Math.sin(6 * x * Math.PI) + 20 * Math.sin(2 * x * Math.PI)) * 2 / 3;
+      value += (20 * Math.sin(y * Math.PI) + 40 * Math.sin(y / 3 * Math.PI)) * 2 / 3;
+      value += (160 * Math.sin(y / 12 * Math.PI) + 320 * Math.sin(y * Math.PI / 30)) * 2 / 3;
+      return value;
+    }
+
+    function offsetLon(x, y) {
+      let value = 300 + x + 2 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+      value += (20 * Math.sin(6 * x * Math.PI) + 20 * Math.sin(2 * x * Math.PI)) * 2 / 3;
+      value += (20 * Math.sin(x * Math.PI) + 40 * Math.sin(x / 3 * Math.PI)) * 2 / 3;
+      value += (150 * Math.sin(x / 12 * Math.PI) + 300 * Math.sin(x / 30 * Math.PI)) * 2 / 3;
+      return value;
+    }
+
+    function wgsToGcj(lon, lat) {
+      const a = 6378245;
+      const ee = 0.00669342162296594323;
+      const dLat = offsetLat(lon - 105, lat - 35);
+      const dLon = offsetLon(lon - 105, lat - 35);
+      const radLat = lat / 180 * Math.PI;
+      let magic = Math.sin(radLat);
+      magic = 1 - ee * magic * magic;
+      const sqrtMagic = Math.sqrt(magic);
+      return [
+        lon + (dLon * 180) / (a / sqrtMagic * Math.cos(radLat) * Math.PI),
+        lat + (dLat * 180) / ((a * (1 - ee)) / (magic * sqrtMagic) * Math.PI),
+      ];
+    }
+
+    function ringArea(ring) {
+      let area = 0;
+      for (let index = 0; index < ring.length - 1; index++) {
+        area += ring[index][0] * ring[index + 1][1] - ring[index + 1][0] * ring[index][1];
+      }
+      return area;
+    }
+
+    function thinRing(ring, minStep) {
+      if (ring.length < 5) return ring;
+      const limit = minStep * minStep;
+      const kept = [ring[0]];
+      for (let index = 1; index < ring.length - 1; index++) {
+        const last = kept[kept.length - 1];
+        const dx = ring[index][0] - last[0];
+        const dy = ring[index][1] - last[1];
+        if (dx * dx + dy * dy >= limit) kept.push(ring[index]);
+      }
+      kept.push(kept[0]);
+      return kept;
+    }
+
+    function toGaodeGeometry(geometry, minStep) {
+      const polygons = geometry.type === "MultiPolygon" ? geometry.coordinates : [geometry.coordinates];
+      for (const polygon of polygons) {
+        for (let index = 0; index < polygon.length; index++) {
+          let ring = thinRing(polygon[index].map(([lon, lat]) => wgsToGcj(lon, lat)), minStep);
+          const clockwise = ringArea(ring) < 0;
+          const wantClockwise = index === 0;
+          if (clockwise !== wantClockwise) ring.reverse();
+          polygon[index] = ring;
+        }
+      }
+    }
+
+    function provinceExtent(collection) {
+      let west = Infinity;
+      let south = Infinity;
+      let east = -Infinity;
+      let north = -Infinity;
+      const holes = [];
+      for (const feature of collection.features) {
+        const polygons = feature.geometry.type === "MultiPolygon"
+          ? feature.geometry.coordinates
+          : [feature.geometry.coordinates];
+        for (const polygon of polygons) {
+          const ring = polygon[0];
+          if (!ring || ring.length < 4) continue;
+          holes.push(ring);
+          for (const [lon, lat] of ring) {
+            if (lon < west) west = lon;
+            if (lon > east) east = lon;
+            if (lat < south) south = lat;
+            if (lat > north) north = lat;
+          }
+        }
+      }
+      return { west, south, east, north, holes };
+    }
+
+    function geometryRings(geometry) {
+      if (!geometry) return [];
+      if (geometry.type === "Polygon") return geometry.coordinates;
+      if (geometry.type === "MultiPolygon") {
+        const rings = [];
+        for (const polygon of geometry.coordinates) rings.push(...polygon);
+        return rings;
+      }
+      return [];
+    }
+
+    function pointInRing(lng, lat, ring) {
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0];
+        const yi = ring[i][1];
+        const xj = ring[j][0];
+        const yj = ring[j][1];
+        const hit = ((yi > lat) !== (yj > lat))
+          && (lng < (xj - xi) * (lat - yi) / ((yj - yi) || 1e-18) + xi);
+        if (hit) inside = !inside;
+      }
+      return inside;
+    }
+
+    function pointInGeometry(lng, lat, geometry) {
+      const polygons = geometry.type === "MultiPolygon" ? geometry.coordinates : [geometry.coordinates];
+      for (const polygon of polygons) {
+        if (!polygon.length || !pointInRing(lng, lat, polygon[0])) continue;
+        let inHole = false;
+        for (let i = 1; i < polygon.length; i++) {
+          if (pointInRing(lng, lat, polygon[i])) {
+            inHole = true;
+            break;
+          }
+        }
+        if (!inHole) return true;
+      }
+      return false;
+    }
+
+    function featureBBox(feature) {
+      let west = Infinity, south = Infinity, east = -Infinity, north = -Infinity;
+      for (const ring of geometryRings(feature.geometry)) {
+        for (const [lng, lat] of ring) {
+          if (lng < west) west = lng;
+          if (lng > east) east = lng;
+          if (lat < south) south = lat;
+          if (lat > north) north = lat;
+        }
+      }
+      return { west, south, east, north };
+    }
+
+    function pointInFeature(lng, lat, feature, bbox) {
+      const box = bbox || featureBBox(feature);
+      if (lng < box.west || lng > box.east || lat < box.south || lat > box.north) return false;
+      return pointInGeometry(lng, lat, feature.geometry);
+    }
+
+    function readSave() {
+      try {
+        return JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function readSaves() {
+      try {
+        const list = JSON.parse(localStorage.getItem(SAVES_KEY) || "[]");
+        if (!Array.isArray(list)) return [];
+        return list.filter((item) => item && item.city);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function writeSaves(list) {
+      localStorage.setItem(SAVES_KEY, JSON.stringify(list));
+      const latest = list[0] || null;
+      if (latest) {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(latest));
+      } else {
+        localStorage.removeItem(SAVE_KEY);
+      }
+      refreshResumeButton();
+      refreshSavesUi();
+    }
+
+    function writeSave(cityName, mapsTab) {
+      const next = {
+        id: cityName.toLowerCase().replace(/\s+/g, "-"),
+        city: cityName,
+        mapsTab: mapsTab || "all",
+        t: Date.now(),
+      };
+      const rest = readSaves().filter((item) => item.city !== cityName);
+      writeSaves([next].concat(rest));
+      if (window.DitieAuth && DitieAuth.getSnapshot().user) {
+        DitieAuth.upsertCloudSave(next).catch((error) => console.warn(error));
+      }
+    }
+
+    function deleteSave(cityName) {
+      writeSaves(readSaves().filter((item) => item.city !== cityName));
+      if (window.DitieAuth && DitieAuth.getSnapshot().user) {
+        DitieAuth.deleteCloudSave(cityName).catch((error) => console.warn(error));
+      }
+    }
+
+    async function syncSavesFromCloud() {
+      if (!window.DitieAuth || !DitieAuth.getSnapshot().user) return;
+      try {
+        const cloud = await DitieAuth.pullCloudSaves();
+        if (!cloud || !cloud.length) return;
+        const local = readSaves();
+        const byCity = new Map();
+        for (const item of local.concat(cloud)) {
+          const prev = byCity.get(item.city);
+          if (!prev || (item.t || 0) >= (prev.t || 0)) byCity.set(item.city, item);
+        }
+        const merged = Array.from(byCity.values()).sort((a, b) => (b.t || 0) - (a.t || 0));
+        writeSaves(merged);
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
+    function clearSave() {
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem(SAVES_KEY);
+      refreshResumeButton();
+      refreshSavesUi();
+    }
+
+    function formatSaveTime(ts) {
+      try {
+        return new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(new Date(ts));
+      } catch (error) {
+        return new Date(ts).toLocaleString();
+      }
+    }
+
+    function refreshSavesUi() {
+      const list = readSaves();
+      const root = document.getElementById("saves-list");
+      const empty = document.getElementById("saves-empty");
+      const hint = document.getElementById("saves-hint");
+      if (hint) hint.textContent = list.length === 1 ? "1 save" : list.length + " saves";
+      if (!root) return;
+      root.innerHTML = "";
+      empty.classList.toggle("is-hidden", list.length > 0);
+      for (const item of list) {
+        const row = document.createElement("div");
+        row.className = "save-row";
+        row.innerHTML = '<div class="meta"><h2></h2><p></p></div>'
+          + '<button type="button" class="open">Open</button>'
+          + '<button type="button" class="delete">Delete</button>';
+        row.querySelector("h2").textContent = item.city;
+        row.querySelector("p").textContent = formatSaveTime(item.t)
+          + (item.mapsTab === "metro" ? " · Metro maps" : "");
+        row.querySelector(".open").addEventListener("click", () => {
+          if (item.mapsTab) mapsMode = item.mapsTab;
+          openCity(item.city).catch((error) => {
+            console.error(error);
+            setBootStatus("Could not open save. " + error.message);
+          });
+        });
+        row.querySelector(".delete").addEventListener("click", () => deleteSave(item.city));
+        root.appendChild(row);
+      }
+    }
+
+    function readSettings() {
+      try {
+        return Object.assign({
+          living: true,
+          jobs: true,
+          places: true,
+        }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}"));
+      } catch (error) {
+        return { living: true, jobs: true, places: true };
+      }
+    }
+
+    function writeSettings(next) {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+    }
+
+    function migrateSaves() {
+      if (readSaves().length) return;
+      const old = readSave();
+      if (!old || !old.city) return;
+      localStorage.setItem(SAVES_KEY, JSON.stringify([{
+        id: String(old.city).toLowerCase().replace(/\s+/g, "-"),
+        city: old.city,
+        mapsTab: old.mapsTab || "all",
+        t: old.t || Date.now(),
+      }]));
+    }
+
+    function refreshResumeButton() {
+      migrateSaves();
+      const saves = readSaves();
+      const save = saves[0] || readSave();
+      const btn = document.getElementById("btn-resume");
+      const hint = document.getElementById("resume-hint");
+      if (!save || !save.city) {
+        btn.disabled = true;
+        hint.textContent = "No saved game yet";
+        return;
+      }
+      btn.disabled = false;
+      hint.textContent = save.city + (saves.length > 1 ? " +" + (saves.length - 1) : "");
+      const savesHint = document.getElementById("saves-hint");
+      if (savesHint) savesHint.textContent = saves.length === 1 ? "1 save" : saves.length + " saves";
+    }
+
+    let authMode = "login";
+
+    function setAuthStatus(text, kind) {
+      const node = document.getElementById("auth-status");
+      if (!text) {
+        node.hidden = true;
+        node.textContent = "";
+        node.classList.remove("is-error", "is-ok");
+        return;
+      }
+      node.hidden = false;
+      node.textContent = text;
+      node.classList.toggle("is-error", kind === "error");
+      node.classList.toggle("is-ok", kind === "ok");
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode === "signup" ? "signup" : "login";
+      document.getElementById("auth-tab-login").classList.toggle("is-active", authMode === "login");
+      document.getElementById("auth-tab-signup").classList.toggle("is-active", authMode === "signup");
+      document.getElementById("auth-tab-login").setAttribute("aria-selected", authMode === "login" ? "true" : "false");
+      document.getElementById("auth-tab-signup").setAttribute("aria-selected", authMode === "signup" ? "true" : "false");
+      document.getElementById("auth-title").textContent = authMode === "login" ? "Log in" : "Sign up";
+      document.getElementById("auth-lead").textContent = authMode === "signup"
+        ? "Create an account with email and password."
+        : "Sign in to keep saved games on your account.";
+      document.getElementById("auth-submit").textContent = authMode === "login" ? "Log in" : "Sign up";
+      document.getElementById("auth-password").autocomplete = authMode === "login" ? "current-password" : "new-password";
+      setAuthStatus("");
+    }
+
+    function refreshAuthUi(snapshot) {
+      const snap = snapshot || (window.DitieAuth && DitieAuth.getSnapshot()) || { configured: false, user: null };
+      const btn = document.getElementById("btn-account");
+      const signout = document.getElementById("auth-signout");
+      const setup = document.getElementById("auth-setup");
+      const form = document.getElementById("auth-form");
+      const tabs = document.querySelector(".auth-tabs");
+      setup.hidden = !!snap.configured;
+      if (snap.user) {
+        const label = snap.email || "Signed in";
+        btn.textContent = label;
+        signout.hidden = false;
+        form.hidden = true;
+        tabs.hidden = true;
+        document.getElementById("auth-title").textContent = "Account";
+        document.getElementById("auth-lead").textContent = "Signed in as " + label + ".";
+        setAuthStatus("Cloud saves sync when you open a city.", "ok");
+      } else {
+        btn.textContent = "Log in";
+        signout.hidden = true;
+        form.hidden = false;
+        tabs.hidden = false;
+        setAuthMode(authMode);
+        if (!snap.configured) {
+          document.getElementById("auth-submit").disabled = true;
+          setAuthStatus("Fill supabase-config.js after creating a Supabase project.", "error");
+        } else {
+          document.getElementById("auth-submit").disabled = false;
+        }
+      }
+    }
+
+    function showScreen(name) {
+      for (const screen of document.querySelectorAll(".screen")) {
+        screen.classList.toggle("is-active", screen.id === "screen-" + name);
+      }
+      if (name === "maps") ensureMapsScreen();
+      if (name === "saves") refreshSavesUi();
+      if (name === "auth") refreshAuthUi();
+      if (name === "settings") {
+        const settings = readSettings();
+        document.getElementById("setting-living").checked = settings.living;
+        document.getElementById("setting-jobs").checked = settings.jobs;
+        document.getElementById("setting-places").checked = settings.places;
+      }
+    }
+
+    async function loadJson(path) {
+      let lastError = null;
+      for (let attempt = 0; attempt < 6; attempt++) {
+        try {
+          const response = await fetch(path, { cache: "no-store" });
+          if (!response.ok) throw new Error(path + " " + response.status);
+          return await response.json();
+        } catch (error) {
+          lastError = error;
+          await new Promise((resolve) => setTimeout(resolve, 600));
+        }
+      }
+      throw lastError;
+    }
+
+    function loadAmap() {
+      return new Promise((resolve, reject) => {
+        if (!window.AMAP_KEY || !window._AMapSecurityConfig) {
+          reject(new Error("Amap settings are missing"));
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://webapi.amap.com/maps?v=2.0&key=" + encodeURIComponent(window.AMAP_KEY);
+        script.async = true;
+        script.onload = () => (window.AMap ? resolve() : reject(new Error("Amap did not start")));
+        script.onerror = () => reject(new Error("Amap could not be loaded"));
+        document.head.appendChild(script);
+      });
+    }
+
+    // The published style file is requested from a host that does not answer
+    // from here, so the roads never get their colors. The same file is
+    // available on the host that already serves the vector tiles.
+    function customStyleUrl(url) {
+      return String(url || "").replace(/https?:\/\/custyle\.amap\.com\//, "https://vdata.amap.com/");
+    }
+    const originalOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url) {
+      const args = Array.prototype.slice.call(arguments);
+      args[1] = customStyleUrl(url);
+      return originalOpen.apply(this, args);
+    };
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+      if (typeof input === "string") return originalFetch(customStyleUrl(input), init);
+      if (input && typeof input.url === "string") {
+        const next = customStyleUrl(input.url);
+        if (next !== input.url) input = new Request(next, input);
+      }
+      return originalFetch(input, init);
+    };
+
+    const amapReady = loadAmap();
+    const bootStatus = document.getElementById("boot-status");
+    let sharedDataPromise = null;
+    let cityDataCache = null;
+    let mapsMode = "all";
+    let mapsAmap = null;
+    let mapsPolygons = [];
+    let selectedCityName = null;
+    let playBooted = false;
+    let playCityName = null;
+
+    function setBootStatus(text) {
+      if (!text) {
+        bootStatus.classList.remove("is-visible");
+        bootStatus.textContent = "";
+        return;
+      }
+      bootStatus.textContent = text;
+      bootStatus.classList.add("is-visible");
+    }
+
+    function loadSharedData() {
+      if (!sharedDataPromise) {
+        setBootStatus("Loading map data…");
+        sharedDataPromise = Promise.all([
+          loadJson("bubbles.json"),
+          loadJson("places.json").catch(() => null),
+          loadJson("cities.json"),
+          loadJson("province.json"),
+          amapReady,
+        ]).then(([bubbles, placeData, cityData, provinceData]) => {
+          toGaodeGeometry(provinceData.geometry, 0.0008);
+          for (const feature of cityData.features) toGaodeGeometry(feature.geometry, 0.00035);
+          cityDataCache = cityData;
+          setBootStatus("");
+          return { bubbles, placeData, cityData, provinceData };
+        }).catch((error) => {
+          sharedDataPromise = null;
+          setBootStatus("Could not load map data. " + error.message);
+          throw error;
+        });
+      }
+      return sharedDataPromise;
+    }
+
+    function cityFeatureByName(cityData, name) {
+      return cityData.features.find((feature) => feature.properties.name === name) || null;
+    }
+
+    function polygonPaths(geometry) {
+      const polygons = geometry.type === "MultiPolygon" ? geometry.coordinates : [geometry.coordinates];
+      return polygons.map((polygon) => polygon.map((ring) => ring.map(([lng, lat]) => [lng, lat])));
+    }
+
+    function styleMapsPolygon(polygon, feature, active) {
+      const metro = window.METRO_SYSTEMS[feature.properties.name];
+      const isMetroMode = mapsMode === "metro";
+      const selectable = !isMetroMode || !!metro;
+      const selected = active === feature.properties.name;
+      let fill = "rgba(62, 198, 184, 0.12)";
+      let stroke = "rgba(232, 237, 242, 0.55)";
+      let strokeWeight = 1.4;
+      if (isMetroMode) {
+        if (metro) {
+          fill = selected ? hexAlpha(metro.color, 0.28) : hexAlpha(metro.color, 0.14);
+          stroke = metro.color;
+          strokeWeight = selected ? 2.4 : 1.8;
+        } else {
+          fill = "rgba(255, 255, 255, 0.02)";
+          stroke = "rgba(255, 255, 255, 0.12)";
+          strokeWeight = 1;
+        }
+      } else if (selected) {
+        fill = "rgba(62, 198, 184, 0.28)";
+        stroke = "#3ec6b8";
+        strokeWeight = 2.4;
+      }
+      polygon.setOptions({
+        fillColor: fill,
+        fillOpacity: 1,
+        strokeColor: stroke,
+        strokeWeight,
+        strokeOpacity: 1,
+        cursor: selectable ? "pointer" : "default",
+        bubble: true,
+        zIndex: selected ? 20 : selectable ? 10 : 1,
+      });
+      polygon.setExtData({ name: feature.properties.name, selectable });
+    }
+
+    function hexAlpha(hex, alpha) {
+      const value = String(hex || "#888").replace("#", "");
+      const full = value.length === 3 ? value.split("").map((c) => c + c).join("") : value;
+      const r = parseInt(full.slice(0, 2), 16);
+      const g = parseInt(full.slice(2, 4), 16);
+      const b = parseInt(full.slice(4, 6), 16);
+      return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+    }
+
+    function updateMapsCard(name) {
+      const card = document.getElementById("maps-card");
+      const logo = document.getElementById("maps-card-logo");
+      const title = document.getElementById("maps-card-title");
+      const sub = document.getElementById("maps-card-sub");
+      if (!name) {
+        card.classList.remove("is-visible");
+        return;
+      }
+      const feature = cityFeatureByName(cityDataCache, name);
+      const metro = window.METRO_SYSTEMS[name];
+      title.textContent = name;
+      sub.textContent = feature
+        ? (metro ? metro.system + " · " + feature.properties.zh : feature.properties.zh)
+        : "";
+      if (metro) {
+        logo.hidden = false;
+        logo.src = metro.logo;
+        logo.alt = metro.system;
+      } else {
+        logo.hidden = true;
+        logo.removeAttribute("src");
+      }
+      card.classList.add("is-visible");
+    }
+
+    function setMapsMode(mode) {
+      mapsMode = mode;
+      document.getElementById("tab-all").classList.toggle("is-active", mode === "all");
+      document.getElementById("tab-metro").classList.toggle("is-active", mode === "metro");
+      document.getElementById("tab-all").setAttribute("aria-selected", mode === "all" ? "true" : "false");
+      document.getElementById("tab-metro").setAttribute("aria-selected", mode === "metro" ? "true" : "false");
+      document.getElementById("maps-hint").textContent = mode === "metro"
+        ? "Only cities with a real metro or urban rail system are selectable. Logos mark each system."
+        : "Click a city border to select it.";
+      if (selectedCityName && mode === "metro" && !window.METRO_SYSTEMS[selectedCityName]) {
+        selectedCityName = null;
+        updateMapsCard(null);
+      }
+      for (const polygon of mapsPolygons) {
+        const feature = polygon.getExtData() && cityFeatureByName(cityDataCache, polygon.getExtData().name);
+        if (feature) styleMapsPolygon(polygon, feature, selectedCityName);
+      }
+      drawMetroMarkers();
+    }
+
+    let metroMarkers = [];
+    function drawMetroMarkers() {
+      for (const marker of metroMarkers) mapsAmap.remove(marker);
+      metroMarkers = [];
+      if (!mapsAmap || mapsMode !== "metro" || !cityDataCache) return;
+      for (const feature of cityDataCache.features) {
+        const metro = window.METRO_SYSTEMS[feature.properties.name];
+        if (!metro) continue;
+        const box = featureBBox(feature);
+        const marker = new AMap.Marker({
+          position: [(box.west + box.east) / 2, (box.south + box.north) / 2],
+          offset: new AMap.Pixel(-18, -18),
+          content: '<div class="metro-marker" style="width:44px;height:44px;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.35);background:#fff;display:flex;align-items:center;justify-content:center;padding:5px"><img src="'
+            + (metro.mark || metro.logo) + '" alt="' + escapeHtml(metro.system)
+            + '" style="max-width:100%;max-height:100%;width:auto;height:auto;display:block;object-fit:contain"/></div>',
+          zIndex: 30,
+        });
+        marker.on("click", () => selectMapsCity(feature.properties.name));
+        mapsAmap.add(marker);
+        metroMarkers.push(marker);
+      }
+    }
+
+    function selectMapsCity(name) {
+      if (mapsMode === "metro" && !window.METRO_SYSTEMS[name]) return;
+      selectedCityName = name;
+      for (const polygon of mapsPolygons) {
+        const data = polygon.getExtData() || {};
+        const feature = cityFeatureByName(cityDataCache, data.name);
+        if (feature) styleMapsPolygon(polygon, feature, selectedCityName);
+      }
+      updateMapsCard(name);
+    }
+
+    async function ensureMapsScreen() {
+      const data = await loadSharedData();
+      if (mapsAmap) {
+        mapsAmap.resize();
+        return;
+      }
+      const province = provinceExtent({ features: [data.provinceData] });
+      mapsAmap = new AMap.Map("maps-map", {
+        viewMode: "2D",
+        zoom: 7.2,
+        center: [113.33, 23.12],
+        zooms: [5, 12],
+        mapStyle: window.AMAP_STYLE,
+        animateEnable: true,
+        rotateEnable: false,
+        pitchEnable: false,
+        isHotspot: false,
+      });
+      mapsPolygons = [];
+      for (const feature of data.cityData.features) {
+        const parts = polygonPaths(feature.geometry);
+        for (const path of parts) {
+          const polygon = new AMap.Polygon({
+            path,
+            strokeStyle: "solid",
+          });
+          styleMapsPolygon(polygon, feature, selectedCityName);
+          polygon.on("click", () => {
+            const info = polygon.getExtData() || {};
+            if (info.selectable) selectMapsCity(feature.properties.name);
+          });
+          polygon.on("mouseover", () => {
+            const info = polygon.getExtData() || {};
+            if (!info.selectable) return;
+            polygon.setOptions({
+              fillOpacity: 1,
+              fillColor: mapsMode === "metro" && window.METRO_SYSTEMS[feature.properties.name]
+                ? hexAlpha(window.METRO_SYSTEMS[feature.properties.name].color, 0.34)
+                : "rgba(62, 198, 184, 0.22)",
+            });
+          });
+          polygon.on("mouseout", () => styleMapsPolygon(polygon, feature, selectedCityName));
+          mapsAmap.add(polygon);
+          mapsPolygons.push(polygon);
+        }
+      }
+      mapsAmap.setBounds(
+        new AMap.Bounds([province.west, province.south], [province.east, province.north]),
+        false,
+        [72, 72, 72, 72]
+      );
+      setMapsMode(mapsMode);
+    }
+
+    function applySettingsToToggles() {
+      const settings = readSettings();
+      document.getElementById("living-toggle").checked = settings.living;
+      document.getElementById("jobs-toggle").checked = settings.jobs;
+      document.getElementById("places-toggle").checked = settings.places;
+    }
+
+    async function openCity(cityName) {
+      if (!cityName) return;
+      if (playBooted && playCityName === cityName) {
+        showScreen("play");
+        return;
+      }
+      if (playBooted && playCityName !== cityName) {
+        writeSave(cityName, mapsMode);
+        location.hash = "play/" + encodeURIComponent(cityName);
+        location.reload();
+        return;
+      }
+      writeSave(cityName, mapsMode);
+      showScreen("play");
+      setBootStatus("Opening " + cityName + "…");
+      const data = await loadSharedData();
+      const feature = cityFeatureByName(data.cityData, cityName);
+      if (!feature) {
+        setBootStatus("City not found: " + cityName);
+        return;
+      }
+      setBootStatus("");
+      bootPlay(cityName, feature, data);
+    }
+
+    function bootPlay(cityName, cityFeature, data) {
+      playBooted = true;
+      playCityName = cityName;
+      const { bubbles, placeData } = data;
+      const cityBox = featureBBox(cityFeature);
+      const overviewAll = bubbles.points.map((point) => {
+        const shifted = wgsToGcj(point[0], point[1]);
+        return { lng: shifted[0], lat: shifted[1], residents: point[2], labor: point[3], youth: point[4], old: point[5], jobs: point[6] || 0 };
+      });
+      const overview = overviewAll.filter((point) => pointInFeature(point.lng, point.lat, cityFeature, cityBox));
+      const blobs = (bubbles.placeBlobs || []).map((point) => {
+        const shifted = wgsToGcj(point[0], point[1]);
+        return { lng: shifted[0], lat: shifted[1], places: point[7] };
+      }).filter((point) => pointInFeature(point.lng, point.lat, cityFeature, cityBox));
+      let detailBlobs = [];
+      const placeKinds = placeData ? placeData.kinds : [];
+      const placeRows = placeData ? placeData.places : [];
+      const places = [];
+      let unratedCount = 0;
+      for (const point of placeRows) {
+        const shifted = wgsToGcj(point[0], point[1]);
+        if (!pointInFeature(shifted[0], shifted[1], cityFeature, cityBox)) continue;
+        if (point[4] === UNRATED) {
+          unratedCount += 1;
+          continue;
+        }
+        places.push({
+          lng: shifted[0], lat: shifted[1], visits: point[2], kind: point[3], tier: point[4],
+          name: point[5], zh: point[6], basis: point[7] || "", source: point[8] || "", url: point[9] || "",
+        });
+      }
+      places.sort((a, b) => a.visits - b.visits);
+      applySettingsToToggles();
+      document.getElementById("play-title").textContent = cityName;
+      document.getElementById("sub").textContent = (cityFeature.properties.zh || cityName)
+        + " · full-detail demand for this city.";
+      const province = provinceExtent({ features: [cityFeature] });
+      const cityRings = geometryRings(cityFeature.geometry);
+
+        const { west, south, east, north } = province;
+        const latPad = Math.max((north - south) * 0.35, 0.08);
+        const lonPad = Math.max((east - west) * 0.35, 0.08);
+        const amap = new AMap.Map("amap", {
+          viewMode: "2D",
+          zoom: 10,
+          center: [(west + east) / 2, (south + north) / 2],
+          zooms: [7, 20],
+          mapStyle: window.AMAP_STYLE,
+          animateEnable: true,
+          doubleClickZoom: true,
+          scrollWheel: true,
+          dragEnable: true,
+          keyboardEnable: true,
+          rotateEnable: false,
+          pitchEnable: false,
+          isHotspot: false,
+        });
+        amap.setLimitBounds(new AMap.Bounds([west - lonPad, south - latPad], [east + lonPad, north + latPad]));
+
+        function liftAmapCredit() {
+          for (const node of document.querySelectorAll(".amap-logo, .amap-copyright")) {
+            if (node.parentElement !== document.body) document.body.appendChild(node);
+          }
+        }
+        amap.on("complete", liftAmapCredit);
+
+        const canvas = document.createElement("canvas");
+        canvas.className = "demand-layer";
+        const mapNode = document.getElementById("amap");
+        mapNode.appendChild(canvas);
+        const labelLayer = document.createElement("div");
+        labelLayer.id = "labels";
+        mapNode.appendChild(labelLayer);
+        const labelPool = [];
+        let labelShown = 0;
+        const measureCtx = document.createElement("canvas").getContext("2d");
+        const labelLayouts = new Map();
+        let project = () => [0, 0];
+        let viewWidth = 1;
+        let viewHeight = 1;
+        let detailPoints = null;
+        let detailShown = [];
+        let detailLoading = false;
+        let detailBox = null;
+        let detailActive = false;
+
+        function viewZoom() {
+          return amap.getZoom() - 1;
+        }
+
+        function projector() {
+          const center = amap.getCenter();
+          const zoom = amap.getZoom();
+          const size = amap.getSize();
+          const scale = 256 * Math.pow(2, zoom);
+          const xOf = (lng) => (lng + 180) / 360 * scale;
+          const yOf = (lat) => {
+            const sine = Math.sin(lat * Math.PI / 180);
+            return (0.5 - Math.log((1 + sine) / (1 - sine)) / (4 * Math.PI)) * scale;
+          };
+          const originX = xOf(center.lng);
+          const originY = yOf(center.lat);
+          const width = size.width;
+          const height = size.height;
+          let dx = 0;
+          let dy = 0;
+          const sample = amap.lngLatToContainer(center);
+          if (sample) {
+            dx = sample.x - width / 2;
+            dy = sample.y - height / 2;
+          }
+          return {
+            width,
+            height,
+            project(lng, lat) {
+              return [xOf(lng) - originX + width / 2 + dx, yOf(lat) - originY + height / 2 + dy];
+            },
+          };
+        }
+
+        function traceRing(ctx, ring, move) {
+          for (let i = 0; i < ring.length; i++) {
+            const [x, y] = project(ring[i][0], ring[i][1]);
+            if (i === 0) move.call(ctx, x, y);
+            else ctx.lineTo(x, y);
+          }
+        }
+
+        function fillCircles(ctx, points, color, alpha, radiusOf) {
+          ctx.beginPath();
+          let any = false;
+          for (let i = 0; i < points.length; i++) {
+            const point = points[i];
+            const radius = radiusOf(point);
+            if (!(radius > 0.4)) continue;
+            const [x, y] = project(point.lng, point.lat);
+            if (x < -radius || y < -radius || x > viewWidth + radius || y > viewHeight + radius) continue;
+            ctx.moveTo(x + radius, y);
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            any = true;
+          }
+          if (!any) return;
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = color;
+          ctx.fill();
+        }
+
+        let bubblesGl = null;
+        let detailUploadId = 0;
+        let detailUploadedId = -1;
+        let dragging = false;
+        const LIVING_RGBA = [0x0c / 255, 0x8e / 255, 0xc4 / 255, 0.72];
+        const JOB_RGBA = [0xff / 255, 0x9a / 255, 0x3c / 255, 0.72];
+        const BLOB_RGBA = [0x8e / 255, 0x3f / 255, 0xbf / 255, 0.72];
+        const PLACE_RGBA = [0x8e / 255, 0x3f / 255, 0xbf / 255, 0.92];
+
+        function initBubbles(gl) {
+          const ext = gl.getExtension("ANGLE_instanced_arrays");
+          if (!ext) {
+            window.__glError = "no instancing";
+            return;
+          }
+          const compile = (type, source) => {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader));
+            return shader;
+          };
+          const link = (vertexSource, fragmentSource) => {
+            const program = gl.createProgram();
+            gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource));
+            gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource));
+            gl.linkProgram(program);
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
+            return program;
+          };
+          const project = `
+            vec2 projectCss(vec2 lnglat) {
+              float x = (lnglat.x - u_center.x) / 360.0 * u_scale;
+              float sine = clamp(sin(lnglat.y * 0.01745329252), -0.9999, 0.9999);
+              float sine0 = clamp(sin(u_center.y * 0.01745329252), -0.9999, 0.9999);
+              float y = -(log((1.0 + sine) / (1.0 - sine)) - log((1.0 + sine0) / (1.0 - sine0))) / 12.5663706144 * u_scale;
+              return vec2(x, y) + u_view * 0.5 + u_offset;
+            }
+            vec2 toClip(vec2 css) {
+              vec2 fb = css * u_dpr;
+              return vec2(fb.x / u_fb.x * 2.0 - 1.0, 1.0 - fb.y / u_fb.y * 2.0);
+            }`;
+          const circleProgram = link(`
+            precision highp float;
+            attribute vec2 a_corner;
+            attribute vec3 i_point;
+            uniform vec2 u_center;
+            uniform float u_scale;
+            uniform vec2 u_view;
+            uniform vec2 u_offset;
+            uniform vec2 u_fb;
+            uniform float u_dpr;
+            uniform float u_mode;
+            uniform float u_mpp;
+            uniform float u_base;
+            uniform float u_slope;
+            uniform float u_stroke;
+            uniform vec4 u_color;
+            varying vec4 v_color;
+            varying vec2 v_corner;
+            varying float v_stroke;
+            ${project}
+            void main() {
+              vec2 css = projectCss(i_point.xy);
+              float radius = u_mode < 0.5
+                ? max(1.0, i_point.z / u_mpp)
+                : max(6.0, u_base + u_slope * i_point.z);
+              v_stroke = u_stroke > 0.0 && radius > 0.4 ? min(0.45, u_stroke / radius) : 0.0;
+              v_corner = a_corner;
+              v_color = u_color;
+              if (radius < 0.4 || css.x < -radius || css.y < -radius || css.x > u_view.x + radius || css.y > u_view.y + radius) {
+                gl_Position = vec4(2.0, 2.0, 0.0, 1.0);
+                return;
+              }
+              gl_Position = vec4(toClip(css + a_corner * radius), 0.0, 1.0);
+            }`, `
+            precision mediump float;
+            varying vec4 v_color;
+            varying vec2 v_corner;
+            varying float v_stroke;
+            void main() {
+              float dist = length(v_corner);
+              if (dist > 1.0) discard;
+              // edge0 must be < edge1; the old reversed smoothstep was undefined
+              // and showed up as a pale or white speck in the middle of each circle.
+              float alpha = 1.0 - smoothstep(0.82, 1.0, dist);
+              vec3 rgb = v_color.rgb;
+              if (v_stroke > 0.0) rgb = mix(rgb, vec3(1.0), smoothstep(1.0 - v_stroke, 1.0 - v_stroke + 0.08, dist));
+              gl_FragColor = vec4(rgb, v_color.a * alpha);
+            }`);
+          const lineProgram = link(`
+            precision highp float;
+            attribute vec2 a_lnglat;
+            uniform vec2 u_center;
+            uniform float u_scale;
+            uniform vec2 u_view;
+            uniform vec2 u_offset;
+            uniform vec2 u_fb;
+            uniform float u_dpr;
+            ${project}
+            void main() {
+              gl_Position = vec4(toClip(projectCss(a_lnglat)), 0.0, 1.0);
+            }`, `
+            precision mediump float;
+            uniform vec4 u_color;
+            void main() { gl_FragColor = u_color; }`);
+          const fillProgram = link(`
+            attribute vec2 a_clip;
+            void main() { gl_Position = vec4(a_clip, 0.0, 1.0); }
+          `, `
+            precision mediump float;
+            uniform vec4 u_color;
+            void main() { gl_FragColor = u_color; }
+          `);
+          const quad = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+          const locations = (program, names) => {
+            const found = {};
+            for (const name of names) found[name] = gl.getUniformLocation(program, name);
+            return found;
+          };
+          const cameraNames = ["u_center", "u_scale", "u_view", "u_offset", "u_fb", "u_dpr"];
+          bubblesGl = {
+            gl, ext, quad,
+            circleProgram, lineProgram, fillProgram,
+            lineBuffer: gl.createBuffer(),
+            maskEdges: gl.createBuffer(),
+            lineChunks: [],
+            stencilBits: gl.getParameter(gl.STENCIL_BITS),
+            maskReady: false,
+            clipLoc: gl.getAttribLocation(fillProgram, "a_clip"),
+            fillColor: gl.getUniformLocation(fillProgram, "u_color"),
+            livingBuf: gl.createBuffer(),
+            jobsBuf: gl.createBuffer(),
+            blobBuf: gl.createBuffer(),
+            detailBlobBuf: gl.createBuffer(),
+            placeBuf: gl.createBuffer(),
+            detailLiving: gl.createBuffer(),
+            detailJobs: gl.createBuffer(),
+            livingCount: 0, jobsCount: 0, blobCount: 0, detailBlobCount: 0, placeCount: 0,
+            detailLivingCount: 0, detailJobsCount: 0,
+            maskCount: 0, lineCount: 0,
+            cornerLoc: gl.getAttribLocation(circleProgram, "a_corner"),
+            pointLoc: gl.getAttribLocation(circleProgram, "i_point"),
+            lineLocAttr: gl.getAttribLocation(lineProgram, "a_lnglat"),
+            circleLoc: locations(circleProgram, cameraNames.concat(["u_mode", "u_mpp", "u_base", "u_slope", "u_stroke", "u_color"])),
+            lineLoc: locations(lineProgram, cameraNames.concat(["u_color"])),
+          };
+          uploadStaticGeometry();
+          uploadLiving();
+          uploadJobs();
+          uploadBlobs();
+          uploadPlaces();
+        }
+        function radiusMeters(value) {
+          return value > 0 ? demandRadiusMeters(value) : 0;
+        }
+
+        function uploadPairs(buffer, rings) {
+          let count = 0;
+          for (let r = 0; r < rings.length; r++) count += Math.max(0, rings[r].length - 1);
+          const data = new Float32Array(count * 4);
+          let write = 0;
+          for (let r = 0; r < rings.length; r++) {
+            const ring = rings[r];
+            for (let i = 1; i < ring.length; i++) {
+              const a = ring[i - 1];
+              const b = ring[i];
+              if (a[0] === b[0] && a[1] === b[1]) continue;
+              data[write++] = a[0];
+              data[write++] = a[1];
+              data[write++] = b[0];
+              data[write++] = b[1];
+            }
+          }
+          const gl = bubblesGl.gl;
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+          gl.bufferData(gl.ARRAY_BUFFER, data.subarray(0, write), gl.STATIC_DRAW);
+          return write / 4;
+        }
+
+        function triangulateRing(ring) {
+          let n = ring.length;
+          if (n > 1 && ring[0][0] === ring[n - 1][0] && ring[0][1] === ring[n - 1][1]) n -= 1;
+          if (n < 3) return new Float32Array(0);
+          const xs = new Float64Array(n);
+          const ys = new Float64Array(n);
+          for (let i = 0; i < n; i++) {
+            xs[i] = ring[i][0];
+            const lat = ring[i][1] * Math.PI / 180;
+            const sine = Math.sin(lat);
+            ys[i] = Math.log((1 + sine) / (1 - sine));
+          }
+          const prev = new Int32Array(n);
+          const next = new Int32Array(n);
+          for (let i = 0; i < n; i++) {
+            prev[i] = (i + n - 1) % n;
+            next[i] = (i + 1) % n;
+          }
+          let area = 0;
+          for (let i = 0; i < n; i++) area += xs[i] * ys[next[i]] - xs[next[i]] * ys[i];
+          if (area < 0) {
+            for (let i = 0; i < n; i++) {
+              const swap = prev[i];
+              prev[i] = next[i];
+              next[i] = swap;
+            }
+          }
+          const tris = [];
+          let start = 0;
+          let remaining = n;
+          let guard = n * n;
+          while (remaining > 3 && guard-- > 0) {
+            let clipped = false;
+            let i = start;
+            for (let step = 0; step < remaining; step++) {
+              const p = prev[i];
+              const nx = next[i];
+              const ax = xs[p], ay = ys[p], bx = xs[i], by = ys[i], cx = xs[nx], cy = ys[nx];
+              if ((bx - ax) * (cy - ay) - (by - ay) * (cx - ax) > 1e-14) {
+                let minX = ax < bx ? ax : bx; if (cx < minX) minX = cx;
+                let maxX = ax > bx ? ax : bx; if (cx > maxX) maxX = cx;
+                let minY = ay < by ? ay : by; if (cy < minY) minY = cy;
+                let maxY = ay > by ? ay : by; if (cy > maxY) maxY = cy;
+                let inside = false;
+                for (let j = next[nx]; j !== p; j = next[j]) {
+                  const px = xs[j], py = ys[j];
+                  if (px < minX || px > maxX || py < minY || py > maxY) continue;
+                  const c1 = (bx - ax) * (py - ay) - (by - ay) * (px - ax);
+                  const c2 = (cx - bx) * (py - by) - (cy - by) * (px - bx);
+                  const c3 = (ax - cx) * (py - cy) - (ay - cy) * (px - cx);
+                  if (c1 >= 0 && c2 >= 0 && c3 >= 0) { inside = true; break; }
+                }
+                if (!inside) {
+                  tris.push(p, i, nx);
+                  next[p] = nx;
+                  prev[nx] = p;
+                  remaining--;
+                  start = nx;
+                  clipped = true;
+                  break;
+                }
+              }
+              i = next[i];
+            }
+            if (!clipped) break;
+          }
+          if (remaining === 3) tris.push(prev[start], start, next[start]);
+          const out = new Float32Array(tris.length * 2);
+          for (let t = 0; t < tris.length; t++) {
+            out[t * 2] = ring[tris[t]][0];
+            out[t * 2 + 1] = ring[tris[t]][1];
+          }
+          return out;
+        }
+
+        function uploadStaticGeometry() {
+          const api = bubblesGl;
+          let expected = 0;
+          const maskParts = [];
+          for (let r = 0; r < province.holes.length; r++) {
+            const ring = province.holes[r];
+            let count = ring.length;
+            if (count > 1 && ring[0][0] === ring[count - 1][0] && ring[0][1] === ring[count - 1][1]) count -= 1;
+            if (count >= 3) expected += (count - 2) * 3;
+            maskParts.push(triangulateRing(ring));
+          }
+          let maskVerts = 0;
+          for (let i = 0; i < maskParts.length; i++) maskVerts += maskParts[i].length / 2;
+          const maskData = new Float32Array(maskVerts * 2);
+          let maskWrite = 0;
+          for (let i = 0; i < maskParts.length; i++) {
+            maskData.set(maskParts[i], maskWrite);
+            maskWrite += maskParts[i].length;
+          }
+          const gl = api.gl;
+          gl.bindBuffer(gl.ARRAY_BUFFER, api.maskEdges);
+          gl.bufferData(gl.ARRAY_BUFFER, maskData.subarray(0, maskWrite), gl.STATIC_DRAW);
+          api.maskCount = maskWrite / 2;
+          api.maskReady = api.stencilBits > 0 && expected > 0 && api.maskCount >= expected * 0.85;
+          if (api.maskReady) canvas.style.display = "none";
+
+          const groups = new Map();
+          for (let r = 0; r < cityRings.length; r++) {
+            const ring = cityRings[r];
+            for (let i = 1; i < ring.length; i++) {
+              const a = ring[i - 1];
+              const b = ring[i];
+              if (a[0] === b[0] && a[1] === b[1]) continue;
+              const key = Math.floor((a[0] + b[0]) / 2) + ":" + Math.floor((a[1] + b[1]) / 2);
+              let group = groups.get(key);
+              if (!group) {
+                group = [];
+                groups.set(key, group);
+              }
+              group.push(a[0], a[1], b[0], b[1]);
+            }
+          }
+          let floats = 0;
+          for (const group of groups.values()) floats += group.length;
+          const lines = new Float32Array(floats);
+          let write = 0;
+          const chunks = [];
+          for (const group of groups.values()) {
+            const start = write / 2;
+            let west = Infinity, south = Infinity, east = -Infinity, north = -Infinity;
+            for (let i = 0; i < group.length; i += 2) {
+              const lng = group[i];
+              const lat = group[i + 1];
+              if (lng < west) west = lng;
+              if (lng > east) east = lng;
+              if (lat < south) south = lat;
+              if (lat > north) north = lat;
+              lines[write++] = lng;
+              lines[write++] = lat;
+            }
+            chunks.push({ start, count: write / 2 - start, west: west - 0.02, south: south - 0.02, east: east + 0.02, north: north + 0.02 });
+          }
+          gl.bindBuffer(gl.ARRAY_BUFFER, api.lineBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, lines.subarray(0, write), gl.STATIC_DRAW);
+          api.lineCount = write / 2;
+          api.lineChunks = chunks;
+        }
+
+        function uploadPoints(buffer, points, paramOf) {
+          const data = new Float32Array(points.length * 3);
+          for (let i = 0; i < points.length; i++) {
+            const point = points[i];
+            data[i * 3] = point.lng;
+            data[i * 3 + 1] = point.lat;
+            data[i * 3 + 2] = paramOf(point);
+          }
+          const gl = bubblesGl.gl;
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+          gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+          return points.length;
+        }
+
+        function uploadLiving() {
+          if (!bubblesGl) return;
+          const key = field();
+          bubblesGl.livingCount = uploadPoints(bubblesGl.livingBuf, overview, (point) => radiusMeters(point[key]));
+          detailUploadId++;
+        }
+
+        function uploadJobs() {
+          if (!bubblesGl) return;
+          bubblesGl.jobsCount = uploadPoints(bubblesGl.jobsBuf, overview, (point) => radiusMeters(point.jobs));
+        }
+
+        function uploadBlobs() {
+          if (!bubblesGl) return;
+          bubblesGl.blobCount = uploadPoints(bubblesGl.blobBuf, blobs, (point) => blobRadiusMeters(point.places));
+        }
+
+        function uploadDetailBlobs() {
+          if (!bubblesGl) return;
+          bubblesGl.detailBlobCount = uploadPoints(
+            bubblesGl.detailBlobBuf,
+            detailBlobs,
+            (point) => blobRadiusMeters(point.places),
+          );
+        }
+
+        function uploadPlaces() {
+          if (!bubblesGl) return;
+          bubblesGl.placeCount = uploadPoints(bubblesGl.placeBuf, places, (point) => placeRadiusMeters(point.visits));
+        }
+
+        function uploadDetail() {
+          if (!bubblesGl) return;
+          const key = field();
+          bubblesGl.detailLivingCount = uploadPoints(bubblesGl.detailLiving, detailShown, (point) => radiusMeters(point[key]));
+          bubblesGl.detailJobsCount = uploadPoints(bubblesGl.detailJobs, detailShown, (point) => radiusMeters(point.jobs));
+        }
+
+        function bindCamera(gl, program, loc) {
+          const center = amap.getCenter();
+          const scale = 256 * Math.pow(2, amap.getZoom());
+          const sample = amap.lngLatToContainer(center);
+          gl.useProgram(program);
+          gl.uniform2f(loc.u_center, center.lng, center.lat);
+          gl.uniform1f(loc.u_scale, scale);
+          gl.uniform2f(loc.u_view, viewWidth, viewHeight);
+          gl.uniform2f(loc.u_offset, sample.x - viewWidth / 2, sample.y - viewHeight / 2);
+          gl.uniform2f(loc.u_fb, gl.drawingBufferWidth, gl.drawingBufferHeight);
+          gl.uniform1f(loc.u_dpr, gl.drawingBufferWidth / viewWidth);
+        }
+
+        function drawCircleBuffer(buffer, count, color, mode, strokePx, mpp, placeBase, placeSlope) {
+          if (!count) return;
+          const api = bubblesGl;
+          const gl = api.gl;
+          const loc = api.circleLoc;
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+          gl.enableVertexAttribArray(api.pointLoc);
+          gl.vertexAttribPointer(api.pointLoc, 3, gl.FLOAT, false, 12, 0);
+          api.ext.vertexAttribDivisorANGLE(api.pointLoc, 1);
+          gl.uniform1f(loc.u_mode, mode);
+          gl.uniform1f(loc.u_mpp, mpp);
+          gl.uniform1f(loc.u_base, placeBase);
+          gl.uniform1f(loc.u_slope, placeSlope);
+          gl.uniform1f(loc.u_stroke, strokePx);
+          gl.uniform4f(loc.u_color, color[0], color[1], color[2], color[3]);
+          api.ext.drawArraysInstancedANGLE(gl.TRIANGLE_STRIP, 0, 4, count);
+        }
+
+        function drawGpu(zoom) {
+          const api = bubblesGl;
+          const gl = api.gl;
+          gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+          gl.disable(gl.DEPTH_TEST);
+          gl.disable(gl.CULL_FACE);
+          gl.disable(gl.SCISSOR_TEST);
+          if (api.maskReady && api.maskCount) {
+            bindCamera(gl, api.lineProgram, api.lineLoc);
+            gl.bindBuffer(gl.ARRAY_BUFFER, api.maskEdges);
+            gl.enableVertexAttribArray(api.lineLocAttr);
+            gl.vertexAttribPointer(api.lineLocAttr, 2, gl.FLOAT, false, 0, 0);
+            api.ext.vertexAttribDivisorANGLE(api.lineLocAttr, 0);
+            gl.enable(gl.STENCIL_TEST);
+            gl.stencilMask(0xff);
+            gl.clearStencil(0);
+            gl.clear(gl.STENCIL_BUFFER_BIT);
+            gl.colorMask(false, false, false, false);
+            gl.stencilFunc(gl.ALWAYS, 1, 0xff);
+            gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+            gl.drawArrays(gl.TRIANGLES, 0, api.maskCount);
+            gl.colorMask(true, true, true, true);
+            gl.stencilFunc(gl.EQUAL, 0, 0xff);
+            gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+            gl.disable(gl.BLEND);
+            gl.useProgram(api.fillProgram);
+            gl.uniform4f(api.fillColor, 0.070588, 0.078431, 0.094118, 1);
+            gl.bindBuffer(gl.ARRAY_BUFFER, api.quad);
+            gl.enableVertexAttribArray(api.clipLoc);
+            gl.vertexAttribPointer(api.clipLoc, 2, gl.FLOAT, false, 0, 0);
+            api.ext.vertexAttribDivisorANGLE(api.clipLoc, 0);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            gl.disableVertexAttribArray(api.clipLoc);
+            gl.disable(gl.STENCIL_TEST);
+            gl.stencilMask(0xff);
+            gl.stencilFunc(gl.ALWAYS, 0, 0xff);
+            gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+          }
+          const livingOn = document.getElementById("living-toggle").checked;
+          const jobsOn = document.getElementById("jobs-toggle").checked;
+          const placesOn = document.getElementById("places-toggle").checked;
+          const unratedOn = document.getElementById("local-toggle").checked;
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+          if (api.lineCount && document.getElementById("borders-toggle").checked) {
+            bindCamera(gl, api.lineProgram, api.lineLoc);
+            gl.uniform4f(api.lineLoc.u_color, 92 / 255, 101 / 255, 112 / 255, 0.85);
+            gl.bindBuffer(gl.ARRAY_BUFFER, api.lineBuffer);
+            gl.enableVertexAttribArray(api.lineLocAttr);
+            gl.vertexAttribPointer(api.lineLocAttr, 2, gl.FLOAT, false, 0, 0);
+            api.ext.vertexAttribDivisorANGLE(api.lineLocAttr, 0);
+            const bounds = amap.getBounds();
+            const sw = bounds.getSouthWest();
+            const ne = bounds.getNorthEast();
+            const chunks = api.lineChunks;
+            for (let i = 0; i < chunks.length; i++) {
+              const chunk = chunks[i];
+              if (chunk.east < sw.lng || chunk.west > ne.lng || chunk.north < sw.lat || chunk.south > ne.lat) continue;
+              gl.drawArrays(gl.LINES, chunk.start, chunk.count);
+            }
+          }
+          const mpp = demandMpp(zoom);
+          const stroke = Math.max(0.8, Math.min(1.6, 0.8 + (zoom - 9) * 0.16));
+          bindCamera(gl, api.circleProgram, api.circleLoc);
+          gl.bindBuffer(gl.ARRAY_BUFFER, api.quad);
+          gl.enableVertexAttribArray(api.cornerLoc);
+          gl.vertexAttribPointer(api.cornerLoc, 2, gl.FLOAT, false, 0, 0);
+          api.ext.vertexAttribDivisorANGLE(api.cornerLoc, 0);
+          const demandLiving = detailActive ? api.detailLiving : api.livingBuf;
+          const demandJobs = detailActive ? api.detailJobs : api.jobsBuf;
+          const livingCount = detailActive ? api.detailLivingCount : api.livingCount;
+          const jobsCount = detailActive ? api.detailJobsCount : api.jobsCount;
+          const softBuf = detailActive && api.detailBlobCount ? api.detailBlobBuf : api.blobBuf;
+          const softCount = detailActive && api.detailBlobCount ? api.detailBlobCount : api.blobCount;
+          // Jobs under living so orange centers do not read as yellow dots
+          // inside the blue circles where the two layers sit on top of each other.
+          if (jobsOn) drawCircleBuffer(demandJobs, jobsCount, JOB_RGBA, 0, 0, mpp, 0, 0);
+          if (livingOn) drawCircleBuffer(demandLiving, livingCount, LIVING_RGBA, 0, 0, mpp, 0, 0);
+          if (placesOn && unratedOn) drawCircleBuffer(softBuf, softCount, BLOB_RGBA, 0, 0, mpp, 0, 0);
+          // Counted places only in full detail, like living/jobs cells. The
+          // overview uses soft place blobs alone so all three layers match.
+          if (placesOn && detailActive) {
+            drawCircleBuffer(api.placeBuf, api.placeCount, PLACE_RGBA, 0, stroke, mpp, 0, 0);
+          }
+          api.ext.vertexAttribDivisorANGLE(api.pointLoc, 0);
+          api.ext.vertexAttribDivisorANGLE(api.cornerLoc, 0);
+          api.ext.vertexAttribDivisorANGLE(api.lineLocAttr, 0);
+          gl.disableVertexAttribArray(api.pointLoc);
+          gl.disableVertexAttribArray(api.cornerLoc);
+          gl.disableVertexAttribArray(api.lineLocAttr);
+        }
+
+        let canvasRatio = 0;
+        let labelsDrawn = false;
+        function paint() {
+          const size = amap.getSize();
+          if (!size || !size.width || !size.height) return;
+          viewWidth = size.width;
+          viewHeight = size.height;
+          const zoom = viewZoom();
+          if (bubblesGl && detailActive && detailUploadId !== detailUploadedId) {
+            uploadDetail();
+            detailUploadedId = detailUploadId;
+          }
+          if (bubblesGl) {
+            drawGpu(zoom);
+            if (bubblesGl.maskReady) {
+              drawDomLabels(zoom);
+              moveTip();
+              return;
+            }
+          }
+          const placesOn = document.getElementById("places-toggle").checked;
+          const showLabels = placesOn && detailActive && zoom >= 9;
+          const canvasMask = !!bubblesGl;
+          if (!bubblesGl || showLabels || labelsDrawn || canvasMask) {
+            const ratio = window.devicePixelRatio || 1;
+            const bitmapWidth = Math.round(viewWidth * ratio);
+            const bitmapHeight = Math.round(viewHeight * ratio);
+            if (canvas.width !== bitmapWidth || canvas.height !== bitmapHeight || canvasRatio !== ratio) {
+              canvas.style.width = viewWidth + "px";
+              canvas.style.height = viewHeight + "px";
+              canvas.width = bitmapWidth;
+              canvas.height = bitmapHeight;
+              canvasRatio = ratio;
+            }
+            const ctx = canvas.getContext("2d");
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            ctx.clearRect(0, 0, viewWidth, viewHeight);
+            const camera = projector();
+            project = camera.project;
+            if (!bubblesGl) {
+              ctx.beginPath();
+              ctx.rect(-20, -20, viewWidth + 40, viewHeight + 40);
+              for (const ring of province.holes) traceRing(ctx, ring, ctx.moveTo);
+              ctx.fillStyle = OUTSIDE;
+              ctx.fill("evenodd");
+              if (document.getElementById("borders-toggle").checked) {
+                ctx.beginPath();
+                for (const ring of cityRings) traceRing(ctx, ring, ctx.moveTo);
+                ctx.strokeStyle = "rgba(92, 101, 112, 0.85)";
+                ctx.lineWidth = 1.25;
+                ctx.stroke();
+              }
+              const livingOn = document.getElementById("living-toggle").checked;
+              const jobsOn = document.getElementById("jobs-toggle").checked;
+              const unratedOn = document.getElementById("local-toggle").checked;
+              const key = field();
+              const demand = detailActive ? detailShown : overview;
+              if (jobsOn) fillCircles(ctx, demand, JOB_COLOR, 0.72, (point) => point.jobs > 0 ? demandRadius(zoom, point.jobs) : 0);
+              if (livingOn) fillCircles(ctx, demand, LIVING_COLOR, 0.72, (point) => point[key] > 0 ? demandRadius(zoom, point[key]) : 0);
+              const soft = detailActive && detailBlobs.length ? detailBlobs : blobs;
+              if (placesOn && unratedOn) fillCircles(ctx, soft, PLACE_COLOR, 0.72, (point) => blobRadius(zoom, point.places));
+              if (placesOn && detailActive && places.length) {
+                const stroke = Math.max(0.8, Math.min(1.6, 0.8 + (zoom - 9) * 0.16));
+                ctx.beginPath();
+                for (let i = 0; i < places.length; i++) {
+                  const place = places[i];
+                  const radius = placeRadius(zoom, place.visits);
+                  const [x, y] = project(place.lng, place.lat);
+                  if (x < -radius || y < -radius || x > viewWidth + radius || y > viewHeight + radius) continue;
+                  ctx.moveTo(x + radius, y);
+                  ctx.arc(x, y, radius, 0, Math.PI * 2);
+                }
+                ctx.globalAlpha = 0.92;
+                ctx.fillStyle = PLACE_COLOR;
+                ctx.fill();
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = stroke;
+                ctx.stroke();
+              }
+            }
+            if (canvasMask) {
+              ctx.beginPath();
+              ctx.rect(-20, -20, viewWidth + 40, viewHeight + 40);
+              for (const ring of province.holes) traceRing(ctx, ring, ctx.moveTo);
+              ctx.fillStyle = OUTSIDE;
+              ctx.fill("evenodd");
+            }
+            if (showLabels) drawLabels(ctx, zoom);
+            labelsDrawn = showLabels;
+            ctx.globalAlpha = 1;
+          }
+          moveTip();
+        }
+
+        function labelLayout(name, size) {
+          const key = size + "|" + name;
+          const cached = labelLayouts.get(key);
+          if (cached) return cached;
+          measureCtx.font = size + 'px "Segoe UI", sans-serif';
+          const maxWidth = size * 9;
+          const lines = wrapLabel(measureCtx, name, maxWidth);
+          const width = Math.max(...lines.map((line) => measureCtx.measureText(line).width));
+          const layout = { lines, width, height: lines.length * size * 1.15, text: lines.join("\n") };
+          labelLayouts.set(key, layout);
+          return layout;
+        }
+
+        function drawDomLabels(zoom) {
+          const placesOn = document.getElementById("places-toggle").checked;
+          // Name labels match living/jobs: only once the map is in full detail.
+          if (!placesOn || !detailActive || zoom < 9) {
+            for (let i = 0; i < labelShown; i++) labelPool[i].style.display = "none";
+            labelShown = 0;
+            return;
+          }
+          const camera = projector();
+          project = camera.project;
+          const citySize = Math.round(piece(zoom, [[9, 11], [14, 14]], linearStep) * 2) / 2;
+          const boxes = [];
+          let used = 0;
+          for (let i = places.length - 1; i >= 0; i--) {
+            const place = places[i];
+            const city = place.tier === 0;
+            if (zoom < (city ? 9 : 11.5) || place.tier === UNRATED || (!city && place.tier > 2)) continue;
+            const size = city ? citySize : 11.5;
+            const layout = labelLayout(place.name, size);
+            const [x, y] = project(place.lng, place.lat);
+            const top = y + size * 0.9;
+            if (x < -layout.width || y < -layout.height || x > viewWidth + layout.width || top > viewHeight) continue;
+            const box = { x: x - layout.width / 2, y: top, w: layout.width, h: layout.height };
+            if (boxes.some((other) => box.x < other.x + other.w && box.x + box.w > other.x && box.y < other.y + other.h && box.y + box.h > other.y)) continue;
+            boxes.push(box);
+            let node = labelPool[used];
+            if (!node) {
+              node = document.createElement("div");
+              labelLayer.appendChild(node);
+              labelPool.push(node);
+            }
+            if (node.dataset.key !== place.name + size) {
+              node.dataset.key = place.name + size;
+              node.textContent = layout.text;
+              node.style.fontSize = size + "px";
+            }
+            node.style.transform = "translate(" + x + "px," + top + "px) translate(-50%,0)";
+            node.style.display = "";
+            used += 1;
+          }
+          for (let i = used; i < labelShown; i++) labelPool[i].style.display = "none";
+          labelShown = used;
+        }
+
+        function drawLabels(ctx, zoom) {
+          const citySize = piece(zoom, [[9, 11], [14, 14]], linearStep);
+          const boxes = [];
+          ctx.textAlign = "center";
+          ctx.textBaseline = "top";
+          ctx.lineJoin = "round";
+          for (let i = places.length - 1; i >= 0; i--) {
+            const place = places[i];
+            const city = place.tier === 0;
+            const minZoom = city ? 9 : 11.5;
+            if (zoom < minZoom || place.tier === UNRATED) continue;
+            if (!city && place.tier > 2) continue;
+            const size = city ? citySize : 11.5;
+            ctx.font = size + 'px "Segoe UI", sans-serif';
+            const maxWidth = size * 9;
+            const lines = wrapLabel(ctx, place.name, maxWidth);
+            const width = Math.max(...lines.map((line) => ctx.measureText(line).width));
+            const [x, y] = project(place.lng, place.lat);
+            const top = y + size * 0.9;
+            const height = lines.length * size * 1.15;
+            if (x < -width || y < -height || x > viewWidth + width || top > viewHeight) continue;
+            const box = { x: x - width / 2, y: top, w: width, h: height };
+            if (boxes.some((other) => box.x < other.x + other.w && box.x + box.w > other.x && box.y < other.y + other.h && box.y + box.h > other.y)) continue;
+            boxes.push(box);
+            ctx.strokeStyle = "rgba(255,255,255,0.92)";
+            ctx.fillStyle = "#4a1f66";
+            ctx.lineWidth = 3;
+            for (let line = 0; line < lines.length; line++) {
+              const lineY = top + line * size * 1.15;
+              ctx.strokeText(lines[line], x, lineY);
+              ctx.fillText(lines[line], x, lineY);
+            }
+          }
+        }
+
+        function wrapLabel(ctx, text, maxWidth) {
+          const words = String(text).split(" ");
+          const lines = [];
+          let line = "";
+          for (const word of words) {
+            const next = line ? line + " " + word : word;
+            if (line && ctx.measureText(next).width > maxWidth) {
+              lines.push(line);
+              line = word;
+            } else line = next;
+          }
+          if (line) lines.push(line);
+          return lines.length ? lines : [""];
+        }
+
+        // Drawn from the basemap's own frame. A separate canvas refreshed on
+        // move events lands one frame later, so the bubbles trail the roads.
+        const layer = new AMap.GLCustomLayer({
+          zIndex: 100,
+          init: (gl) => {
+            try { initBubbles(gl); }
+            catch (error) { window.__glError = String(error && error.stack || error); console.error(error); }
+          },
+          render: paint,
+        });
+        amap.add(layer);
+
+        const countEl = document.getElementById("count");
+        const countLabel = document.getElementById("count-label");
+        const jobsCountEl = document.getElementById("jobs-count");
+        const placesCountEl = document.getElementById("places-count");
+        const placesLabel = document.getElementById("places-label");
+        const tip = document.getElementById("tip");
+        let tipLngLat = null;
+        let pinned = false;
+
+        function field() {
+          return document.querySelector('input[name="field"]:checked').value;
+        }
+
+        function updatePanel() {
+          const key = field();
+          const livingOn = document.getElementById("living-toggle").checked;
+          const jobsOn = document.getElementById("jobs-toggle").checked;
+          const placesOn = document.getElementById("places-toggle").checked;
+          const unratedOn = document.getElementById("local-toggle").checked;
+          const shown = overview.reduce((sum, point) => sum + point[key], 0);
+          const jobs = overview.reduce((sum, point) => sum + point.jobs, 0);
+          countEl.firstChild.textContent = formatPeople(shown);
+          countLabel.textContent = FIELDS[key];
+          countEl.style.display = livingOn ? "" : "none";
+          jobsCountEl.firstChild.textContent = formatPeople(jobs);
+          jobsCountEl.style.display = jobsOn ? "" : "none";
+          placesCountEl.firstChild.textContent = formatPeople(places.reduce((sum, place) => sum + place.visits, 0));
+          placesCountEl.style.display = placesOn && places.length ? "" : "none";
+        }
+
+        function applyField() {
+          updatePanel();
+          uploadLiving();
+          redraw();
+        }
+
+        function applyToggles() {
+          updatePanel();
+          redraw();
+        }
+
+        let redrawQueued = false;
+        function redraw() {
+          if (redrawQueued) return;
+          redrawQueued = true;
+          requestAnimationFrame(() => {
+            redrawQueued = false;
+            amap.render();
+          });
+        }
+
+        function boundsOf(pad) {
+          const bounds = amap.getBounds();
+          const sw = bounds.getSouthWest();
+          const ne = bounds.getNorthEast();
+          return [sw.lng - pad, sw.lat - pad, ne.lng + pad, ne.lat + pad];
+        }
+
+        function refreshDetail() {
+          if (!detailPoints) {
+            detailActive = false;
+            detailShown = [];
+            return;
+          }
+          // City maps keep full-detail bubbles at every zoom; only the
+          // on-screen window is refreshed so the GPU buffer stays bounded.
+          const [westEdge, southEdge, eastEdge, northEdge] = boundsOf(0);
+          if (
+            detailBox &&
+            westEdge >= detailBox[0] && eastEdge <= detailBox[2] &&
+            southEdge >= detailBox[1] && northEdge <= detailBox[3]
+          ) {
+            detailActive = true;
+            return;
+          }
+          const pad = Math.max(0.08, (eastEdge - westEdge) * 0.35);
+          const westEdgePad = westEdge - pad;
+          const eastEdgePad = eastEdge + pad;
+          const southEdgePad = southEdge - pad;
+          const northEdgePad = northEdge + pad;
+          let start = 0;
+          let end = detailPoints.length;
+          while (start < end) {
+            const mid = (start + end) >> 1;
+            if (detailPoints[mid]._lng < westEdgePad) start = mid + 1;
+            else end = mid;
+          }
+          const shown = [];
+          for (let index = start; index < detailPoints.length; index++) {
+            const point = detailPoints[index];
+            if (point._lng > eastEdgePad) break;
+            if (point._lat >= southEdgePad && point._lat <= northEdgePad) shown.push(point);
+          }
+          detailBox = [westEdgePad, southEdgePad, eastEdgePad, northEdgePad];
+          detailShown = shown;
+          detailActive = true;
+          detailUploadId++;
+        }
+
+        function ensureDetail() {
+          if (detailPoints) {
+            refreshDetail();
+            redraw();
+            return Promise.resolve();
+          }
+          if (detailLoading) return detailLoading;
+          detailLoading = loadJson("bubbles-detail.json").then((detail) => {
+            const clipped = [];
+            for (const point of detail.points) {
+              const shifted = wgsToGcj(point[0], point[1]);
+              if (!pointInFeature(shifted[0], shifted[1], cityFeature, cityBox)) continue;
+              point._lng = shifted[0];
+              point._lat = shifted[1];
+              point.lng = shifted[0];
+              point.lat = shifted[1];
+              point.residents = point[2];
+              point.labor = point[3];
+              point.youth = point[4];
+              point.old = point[5];
+              point.jobs = point[6] || 0;
+              clipped.push(point);
+            }
+            detailPoints = clipped;
+            detailPoints.sort((a, b) => a._lng - b._lng);
+            detailBlobs = (detail.placeBlobs || []).map((point) => {
+              const shifted = wgsToGcj(point[0], point[1]);
+              return { lng: shifted[0], lat: shifted[1], places: point[7] };
+            }).filter((point) => pointInFeature(point.lng, point.lat, cityFeature, cityBox));
+            uploadDetailBlobs();
+            refreshDetail();
+            redraw();
+          }).catch((error) => {
+            console.error(error);
+            detailLoading = false;
+            throw error;
+          });
+          return detailLoading;
+        }
+
+        function hit(x, y) {
+          const zoom = viewZoom();
+          const camera = projector();
+          project = camera.project;
+          viewWidth = camera.width;
+          viewHeight = camera.height;
+          if (document.getElementById("places-toggle").checked && detailActive) {
+            for (let i = places.length - 1; i >= 0; i--) {
+              const place = places[i];
+              const radius = placeRadius(zoom, place.visits);
+              const [px, py] = project(place.lng, place.lat);
+              const dx = x - px;
+              const dy = y - py;
+              if (dx * dx + dy * dy <= radius * radius) return { kind: "place", point: place };
+            }
+          }
+          const key = field();
+          const livingOn = document.getElementById("living-toggle").checked;
+          const jobsOn = document.getElementById("jobs-toggle").checked;
+          const demand = detailActive ? detailShown : overview;
+          const here = amap.containerToLngLat(new AMap.Pixel(x, y));
+          const pad = 640 * 360 / (256 * Math.pow(2, amap.getZoom()));
+          const westEdge = here.lng - pad;
+          const eastEdge = here.lng + pad;
+          const southEdge = here.lat - pad;
+          const northEdge = here.lat + pad;
+          for (let i = demand.length - 1; i >= 0; i--) {
+            const point = demand[i];
+            if (point.lng < westEdge || point.lng > eastEdge || point.lat < southEdge || point.lat > northEdge) continue;
+            const livingR = livingOn && point[key] > 0 ? demandRadius(zoom, point[key]) : 0;
+            const jobsR = jobsOn && point.jobs > 0 ? demandRadius(zoom, point.jobs) : 0;
+            const radius = Math.max(livingR, jobsR);
+            if (!(radius > 0)) continue;
+            const [px, py] = project(point.lng, point.lat);
+            const dx = x - px;
+            const dy = y - py;
+            if (dx * dx + dy * dy <= radius * radius) return { kind: "demand", point };
+          }
+          return null;
+        }
+
+        function placeHtml(place, withLink) {
+          const kind = placeKinds[place.kind] || { label: "Place" };
+          const tier = TIERS[place.tier];
+          const lines = [`<strong>${escapeHtml(place.name)}</strong>`];
+          if (place.zh) lines.push(escapeHtml(place.zh));
+          lines.push(`<span class="popup-kind">${escapeHtml(kind.label)} · ${TIER_NAMES[tier]}</span>`);
+          lines.push(`<strong>${formatPeople(place.visits)}</strong> visits per day`);
+          lines.push(`<span class="popup-kind">${escapeHtml(place.basis)}</span>`);
+          const source = escapeHtml(place.source);
+          lines.push(`<span class="popup-kind">Source: ${withLink && place.url
+            ? `<a href="${escapeHtml(place.url)}" target="_blank" rel="noopener">${source}</a>` : source}</span>`);
+          if (kind.peak) lines.push(`<span class="popup-kind">Busiest: ${escapeHtml(kind.peak)}</span>`);
+          return lines.join("<br>");
+        }
+
+        function demandHtml(point) {
+          const lines = [];
+          if (point.residents > 0 || point.labor > 0 || point.youth > 0 || point.old > 0) {
+            lines.push(`<strong>${formatPeople(point[field()])}</strong> ${FIELDS[field()]}`);
+            lines.push(`${formatPeople(point.residents)} residents · ${formatPeople(point.labor)} labor`);
+            lines.push(`${formatPeople(point.youth)} youth · ${formatPeople(point.old)} aged 65+`);
+          }
+          if (point.jobs > 0) lines.push(`<strong>${formatPeople(point.jobs)}</strong> jobs`);
+          return lines.join("<br>");
+        }
+
+        function showTip(html, lng, lat, stick) {
+          tipLngLat = [lng, lat];
+          pinned = stick;
+          tip.classList.toggle("pinned", stick);
+          tip.innerHTML = html;
+          tip.style.display = "block";
+          moveTip();
+        }
+
+        function hideHover() {
+          if (pinned) return;
+          tip.style.display = "none";
+          tipLngLat = null;
+        }
+
+        function moveTip() {
+          if (!tipLngLat || tip.style.display === "none") return;
+          const camera = projector();
+          const [x, y] = camera.project(tipLngLat[0], tipLngLat[1]);
+          tip.style.left = x + "px";
+          tip.style.top = y + "px";
+        }
+
+        let dragOn = false;
+        let zoomOn = false;
+        function syncMoving() { dragging = dragOn || zoomOn; }
+        amap.on("dragstart", () => { dragOn = true; syncMoving(); });
+        amap.on("dragend", () => { dragOn = false; syncMoving(); });
+        amap.on("zoomstart", () => { zoomOn = true; syncMoving(); });
+        amap.on("zoomend", () => { zoomOn = false; syncMoving(); });
+        amap.on("mousemove", (event) => {
+          moveTip();
+          if (pinned || dragging) return;
+          const found = hit(event.pixel.x, event.pixel.y);
+          if (!found) {
+            hideHover();
+            amap.setDefaultCursor("default");
+            return;
+          }
+          amap.setDefaultCursor("pointer");
+          if (found.kind === "place") showTip(placeHtml(found.point, false), found.point.lng, found.point.lat, false);
+          else showTip(demandHtml(found.point), found.point.lng, found.point.lat, false);
+        });
+        amap.on("mouseout", hideHover);
+        amap.on("click", (event) => {
+          const found = hit(event.pixel.x, event.pixel.y);
+          if (found && found.kind === "place") {
+            showTip(placeHtml(found.point, true), found.point.lng, found.point.lat, true);
+            return;
+          }
+          pinned = false;
+          tip.style.display = "none";
+          tipLngLat = null;
+        });
+        amap.on("mapmove", moveTip);
+        amap.on("zoomchange", moveTip);
+        amap.on("zoomend", () => {
+          refreshDetail();
+          redraw();
+        });
+        amap.on("moveend", () => {
+          if (detailPoints) {
+            refreshDetail();
+            redraw();
+          }
+        });
+
+        document.getElementById("zoom-in").addEventListener("click", () => amap.zoomIn());
+        document.getElementById("zoom-out").addEventListener("click", () => amap.zoomOut());
+        document.querySelectorAll('input[name="field"]').forEach((input) => {
+          input.addEventListener("change", applyField);
+        });
+        ["living-toggle", "jobs-toggle", "places-toggle", "local-toggle", "borders-toggle"].forEach((id) => {
+          document.getElementById(id).addEventListener("change", applyToggles);
+        });
+
+        amap.setBounds(new AMap.Bounds([west, south], [east, north]), true, [48, 48, 48, 48]);
+        liftAmapCredit();
+        applyField();
+        setBootStatus("Loading full detail…");
+        ensureDetail().then(() => setBootStatus("")).catch(() => setBootStatus("Detail layer failed to load"));
+    }
+
+    document.querySelectorAll("[data-screen]").forEach((node) => {
+      node.addEventListener("click", () => showScreen(node.getAttribute("data-screen")));
+    });
+    document.getElementById("btn-resume").addEventListener("click", () => {
+      const save = readSave();
+      if (save && save.city) {
+        if (save.mapsTab) mapsMode = save.mapsTab;
+        openCity(save.city).catch((error) => {
+          console.error(error);
+          setBootStatus("Could not resume. " + error.message);
+        });
+      }
+    });
+    document.getElementById("tab-all").addEventListener("click", () => setMapsMode("all"));
+    document.getElementById("tab-metro").addEventListener("click", () => setMapsMode("metro"));
+    document.getElementById("maps-card-go").addEventListener("click", () => {
+      if (!selectedCityName) return;
+      openCity(selectedCityName).catch((error) => {
+        console.error(error);
+        setBootStatus("Could not open map. " + error.message);
+      });
+    });
+    document.getElementById("play-to-maps").addEventListener("click", () => showScreen("maps"));
+    document.getElementById("play-to-home").addEventListener("click", () => showScreen("home"));
+    document.getElementById("btn-clear-save").addEventListener("click", () => {
+      clearSave();
+      setBootStatus("Saved games cleared");
+      setTimeout(() => setBootStatus(""), 1600);
+    });
+    ["setting-living", "setting-jobs", "setting-places"].forEach((id) => {
+      document.getElementById(id).addEventListener("change", () => {
+        writeSettings({
+          living: document.getElementById("setting-living").checked,
+          jobs: document.getElementById("setting-jobs").checked,
+          places: document.getElementById("setting-places").checked,
+        });
+      });
+    });
+
+    document.getElementById("auth-tab-login").addEventListener("click", () => setAuthMode("login"));
+    document.getElementById("auth-tab-signup").addEventListener("click", () => setAuthMode("signup"));
+    document.getElementById("auth-signout").addEventListener("click", async () => {
+      try {
+        await DitieAuth.signOut();
+        setAuthStatus("Signed out.", "ok");
+        refreshAuthUi();
+      } catch (error) {
+        setAuthStatus(DitieAuth.authErrorMessage(error), "error");
+      }
+    });
+    document.getElementById("auth-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const email = document.getElementById("auth-email").value.trim();
+      const password = document.getElementById("auth-password").value;
+      const submit = document.getElementById("auth-submit");
+      submit.disabled = true;
+      try {
+        if (authMode === "login") {
+          await DitieAuth.signIn(email, password);
+          setAuthStatus("Signed in.", "ok");
+          await syncSavesFromCloud();
+          refreshAuthUi();
+        } else {
+          const result = await DitieAuth.signUp(email, password);
+          if (result && result.needsEmailConfirm) {
+            setAuthStatus("Account created. Confirm the email link, then log in.", "ok");
+            setAuthMode("login");
+          } else {
+            setAuthStatus("Signed up.", "ok");
+            await syncSavesFromCloud();
+            refreshAuthUi();
+          }
+        }
+      } catch (error) {
+        setAuthStatus(DitieAuth.authErrorMessage(error), "error");
+      } finally {
+        if (DitieAuth.isConfigured() && !DitieAuth.getSnapshot().user) submit.disabled = false;
+      }
+    });
+
+    refreshResumeButton();
+    refreshSavesUi();
+    loadSharedData().catch(() => {});
+
+    if (window.DitieAuth) {
+      DitieAuth.onAuthChange((snap) => {
+        refreshAuthUi(snap);
+        if (snap.user) syncSavesFromCloud();
+      });
+      DitieAuth.init().catch((error) => {
+        console.warn(error);
+        refreshAuthUi({ configured: DitieAuth.isConfigured(), user: null });
+        setAuthStatus(DitieAuth.authErrorMessage(error), "error");
+      });
+    }
+
+    const hash = location.hash.replace(/^#/, "");
+    if (hash.startsWith("play/")) {
+      const city = decodeURIComponent(hash.slice(5));
+      openCity(city).catch((error) => {
+        console.error(error);
+        setBootStatus("Could not open map. " + error.message);
+      });
+    }
+  </script>
+</body>
+</html>
